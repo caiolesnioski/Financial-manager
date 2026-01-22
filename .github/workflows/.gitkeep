@@ -1,0 +1,3 @@
+# Este arquivo mantem a pasta no Git
+# Adicione seus workflows de CI/CD aqui
+# Exemplo: ci.yml, deploy.yml, test.yml
