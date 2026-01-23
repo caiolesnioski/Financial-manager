@@ -4,6 +4,8 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useToast } from '../context/ToastContext'
 import CurrencySelector from '../components/CurrencySelector'
+import { ACCOUNT_TYPE_OPTIONS, ACCOUNT_TYPE_LABELS } from '../constants/accountTypes'
+import { validateAccountName, validateBalance, getErrorMessage } from '../utils/validators'
 
 export default function Accounts() {
   const { accounts, loading, create, update, remove, load } = useAccounts()
@@ -12,29 +14,28 @@ export default function Accounts() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [contaEditando, setContaEditando] = useState(null)
   const [formNome, setFormNome] = useState('')
-  const [formTipo, setFormTipo] = useState('Conta Corrente')
+  const [formTipo, setFormTipo] = useState('bank')
   const [formSaldo, setFormSaldo] = useState('0')
   const [formCor, setFormCor] = useState('bg-blue-500')
+  const [formErros, setFormErros] = useState({})
+  const [salvando, setSalvando] = useState(false)
 
   const calcularSaldoTotal = () => {
     return (accounts || []).reduce((total, conta) => total + (conta.currentBalance ?? 0), 0)
   }
 
   const getIcone = (tipo) => {
-    if (tipo?.includes('Corrente') || tipo === 'bank') return <Building2 size={24} />
-    if (tipo?.includes('Poupanca') || tipo?.includes('Poupança') || tipo === 'piggy') return <PiggyBank size={24} />
-    if (tipo?.includes('Cartao') || tipo?.includes('Cartão') || tipo === 'card') return <CreditCard size={24} />
-    if (tipo?.includes('Investimento')) return <TrendingUp size={24} />
-    return <Wallet size={24} />
+    switch(tipo) {
+      case 'bank': return <Building2 size={24} />
+      case 'piggy': return <PiggyBank size={24} />
+      case 'card': return <CreditCard size={24} />
+      case 'investment': return <TrendingUp size={24} />
+      case 'wallet': return <Wallet size={24} />
+      default: return <Wallet size={24} />
+    }
   }
 
-  const tiposConta = [
-    { valor: 'Conta Corrente', label: 'Conta Corrente' },
-    { valor: 'Poupanca', label: 'Poupanca' },
-    { valor: 'Cartao de Credito', label: 'Cartao de Credito' },
-    { valor: 'Dinheiro', label: 'Dinheiro' },
-    { valor: 'Investimento', label: 'Investimento' }
-  ]
+  const tiposConta = ACCOUNT_TYPE_OPTIONS
 
   const cores = [
     { class: 'bg-blue-500', hex: '#3b82f6' },
@@ -50,33 +51,51 @@ export default function Accounts() {
   const excluirConta = async (id) => {
     if (!confirm('Tem certeza que deseja excluir esta conta?')) return
     const { error } = await remove(id)
-    if (error) addToast('Erro ao excluir: ' + (error.message || error), 'error')
-    else await load()
+    if (error) {
+      const mensagem = getErrorMessage(error, 'excluir a conta')
+      addToast(mensagem, 'error')
+    } else {
+      addToast('Conta excluída com sucesso!', 'success')
+      await load()
+    }
   }
 
   const editarConta = (conta) => {
     setContaEditando(conta)
     setFormNome(conta.name || '')
-    setFormTipo(conta.type || 'Conta Corrente')
+    setFormTipo(conta.type || 'bank')
     setFormSaldo(String(conta.currentBalance ?? 0))
     setFormCor(conta.cor || 'bg-blue-500')
+    setFormErros({})
     setMostrarFormulario(true)
   }
 
   const abrirNovoFormulario = () => {
     setContaEditando(null)
     setFormNome('')
-    setFormTipo('Conta Corrente')
+    setFormTipo('bank')
     setFormSaldo('0')
     setFormCor('bg-blue-500')
+    setFormErros({})
     setMostrarFormulario(true)
   }
 
   const salvarConta = async () => {
-    if (!formNome.trim()) {
-      addToast('Por favor, digite o nome da conta', 'warning')
+    // Validar
+    const novoErros = {}
+    const nomeErro = validateAccountName(formNome)
+    if (nomeErro) novoErros.nome = nomeErro
+
+    const saldoErro = validateBalance(formSaldo, { allowNegative: true })
+    if (saldoErro) novoErros.saldo = saldoErro
+
+    if (Object.keys(novoErros).length > 0) {
+      setFormErros(novoErros)
       return
     }
+
+    setSalvando(true)
+    setFormErros({})
 
     const payload = {
       name: formNome,
@@ -85,17 +104,31 @@ export default function Accounts() {
       currentBalance: Number(formSaldo) || 0
     }
 
-    if (contaEditando) {
-      const { error } = await update(contaEditando.id, payload)
-      if (error) addToast('Erro ao atualizar: ' + (error.message || error), 'error')
-      else await load()
-    } else {
-      const { error } = await create(payload)
-      if (error) addToast('Erro ao criar: ' + (error.message || error), 'error')
-      else await load()
+    try {
+      if (contaEditando) {
+        const { error } = await update(contaEditando.id, payload)
+        if (error) {
+          const mensagem = getErrorMessage(error, 'atualizar conta')
+          addToast(mensagem, 'error')
+        } else {
+          addToast('Conta atualizada com sucesso!', 'success')
+          await load()
+          setMostrarFormulario(false)
+        }
+      } else {
+        const { error } = await create(payload)
+        if (error) {
+          const mensagem = getErrorMessage(error, 'criar conta')
+          addToast(mensagem, 'error')
+        } else {
+          addToast('Conta criada com sucesso!', 'success')
+          await load()
+          setMostrarFormulario(false)
+        }
+      }
+    } finally {
+      setSalvando(false)
     }
-
-    setMostrarFormulario(false)
   }
 
   const saldoTotal = calcularSaldoTotal()
@@ -212,8 +245,13 @@ export default function Accounts() {
                   placeholder="Ex: Banco Itau"
                   value={formNome}
                   onChange={(e) => setFormNome(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                    formErros.nome
+                      ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  }`}
                 />
+                {formErros.nome && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErros.nome}</p>}
               </div>
 
               <div>
@@ -224,7 +262,7 @@ export default function Accounts() {
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 >
                   {tiposConta.map(tipo => (
-                    <option key={tipo.valor} value={tipo.valor}>{tipo.label}</option>
+                    <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
                   ))}
                 </select>
               </div>
@@ -237,8 +275,13 @@ export default function Accounts() {
                   placeholder="0,00"
                   value={formSaldo}
                   onChange={(e) => setFormSaldo(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                    formErros.saldo
+                      ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
+                  }`}
                 />
+                {formErros.saldo && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErros.saldo}</p>}
               </div>
 
               <div>
@@ -257,9 +300,14 @@ export default function Accounts() {
 
               <button
                 onClick={salvarConta}
-                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors mt-6"
+                disabled={salvando}
+                className={`w-full py-3 text-white font-semibold rounded-xl transition-colors mt-6 ${
+                  salvando
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-emerald-500 hover:bg-emerald-600'
+                }`}
               >
-                {contaEditando ? 'Salvar alteracoes' : 'Criar conta'}
+                {salvando ? 'Salvando...' : (contaEditando ? 'Salvar alteracoes' : 'Criar conta')}
               </button>
             </div>
           </div>
