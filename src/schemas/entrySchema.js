@@ -1,6 +1,49 @@
 import { z } from 'zod'
 
-export const entrySchema = z.object({
+// Refinements compartilhados entre entrySchema e entryFormSchema
+const withEntryRefinements = (schema) => schema
+  .refine(
+    (data) => {
+      // Se for transferência, origem e destino são obrigatórios
+      if (data.type === 'transfer') {
+        return data.originAccount && data.destinationAccount
+      }
+      return true
+    },
+    {
+      message: 'Transferências requerem conta de origem e destino',
+      path: ['originAccount']
+    }
+  )
+  .refine(
+    (data) => {
+      // Se for receita ou despesa, conta é obrigatória
+      if (data.type === 'income' || data.type === 'expense') {
+        return data.account && data.account.length > 0
+      }
+      return true
+    },
+    {
+      message: 'Selecione uma conta',
+      path: ['account']
+    }
+  )
+  .refine(
+    (data) => {
+      // Origem e destino não podem ser iguais em transferências
+      if (data.type === 'transfer') {
+        return data.originAccount !== data.destinationAccount
+      }
+      return true
+    },
+    {
+      message: 'Conta de origem e destino devem ser diferentes',
+      path: ['destinationAccount']
+    }
+  )
+
+// Schema base sem refinements (permite .extend())
+const entryBaseSchema = z.object({
   type: z.enum(['income', 'expense', 'transfer'], {
     required_error: 'Selecione o tipo de lançamento',
     invalid_type_error: 'Tipo inválido'
@@ -42,54 +85,22 @@ export const entrySchema = z.object({
   destinationAccount: z
     .string()
     .optional()
-}).refine(
-  (data) => {
-    // Se for transferência, origem e destino são obrigatórios
-    if (data.type === 'transfer') {
-      return data.originAccount && data.destinationAccount
-    }
-    return true
-  },
-  {
-    message: 'Transferências requerem conta de origem e destino',
-    path: ['originAccount']
-  }
-).refine(
-  (data) => {
-    // Se for receita ou despesa, conta é obrigatória
-    if (data.type === 'income' || data.type === 'expense') {
-      return data.account && data.account.length > 0
-    }
-    return true
-  },
-  {
-    message: 'Selecione uma conta',
-    path: ['account']
-  }
-).refine(
-  (data) => {
-    // Origem e destino não podem ser iguais em transferências
-    if (data.type === 'transfer') {
-      return data.originAccount !== data.destinationAccount
-    }
-    return true
-  },
-  {
-    message: 'Conta de origem e destino devem ser diferentes',
-    path: ['destinationAccount']
-  }
-)
+})
+
+export const entrySchema = withEntryRefinements(entryBaseSchema)
 
 // Schema para apenas valor (útil para validações parciais)
 export const valueSchema = z
   .number()
   .positive('O valor deve ser maior que zero')
 
-// Schema para transformar string em número
-export const entryFormSchema = entrySchema.extend({
-  value: z
-    .string()
-    .min(1, 'Informe o valor')
-    .transform((val) => parseFloat(val.replace(',', '.')))
-    .refine((val) => !isNaN(val) && val > 0, 'O valor deve ser maior que zero')
-})
+// Schema para transformar string em número — estende o base (sem refinements) e re-aplica
+export const entryFormSchema = withEntryRefinements(
+  entryBaseSchema.extend({
+    value: z
+      .string()
+      .min(1, 'Informe o valor')
+      .transform((val) => parseFloat(val.replace(',', '.')))
+      .refine((val) => !isNaN(val) && val > 0, 'O valor deve ser maior que zero')
+  })
+)

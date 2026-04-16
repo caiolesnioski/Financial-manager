@@ -10,10 +10,10 @@ export function useLimits() {
     if (!row) return null
     return {
       id: row.id,
-      category: row.category || row.categoria,
-      limit: Number(row.limit ?? row.limit_value ?? row.limite ?? 0),
-      spent: Number(row.spent ?? row.gasto ?? 0),
-      color: row.color || row.cor || 'bg-emerald-500',
+      category: row.category,
+      limit: Number(row.limit_value ?? 0),
+      spent: Number(row.used_value ?? 0),
+      color: row.color || '#10b981',
       inserted_at: row.inserted_at
     }
   }

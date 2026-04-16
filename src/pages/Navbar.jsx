@@ -18,6 +18,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold text-lg text-fintech-green">Gerenciador</Link>
           <Link to="/accounts" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Contas</Link>
+          <Link to="/entries" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Lançamentos</Link>
           <Link to="/limits" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Limites</Link>
           <Link to="/cashflow" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Fluxo</Link>
           <Link to="/reports" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Relatórios</Link>

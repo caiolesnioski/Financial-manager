@@ -66,6 +66,10 @@ create table if not exists public.limits (
   limit_value numeric not null default 0,
   used_value numeric default 0,
   percentage integer default 0,
+  color text default '#10b981',
+  emoji text default '📦',
+  start_date date,
+  end_date date,
   inserted_at timestamptz default now()
 );
 

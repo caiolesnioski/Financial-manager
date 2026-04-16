@@ -7,6 +7,7 @@ import NewEntry from './pages/NewEntry'
 import Reports from './pages/Reports'
 import Limits from './pages/Limits'
 import Settings from './pages/Settings'
+import EntryList from './pages/EntryList'
 import Navbar from './pages/Navbar'
 import ToastContainer from './components/ToastContainer'
 import { useAuth } from './hooks/useAuth'
@@ -77,6 +78,14 @@ export default function App() {
               element={
                 <PrivateRoute>
                   <Limits />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/entries"
+              element={
+                <PrivateRoute>
+                  <EntryList />
                 </PrivateRoute>
               }
             />
