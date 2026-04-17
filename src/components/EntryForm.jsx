@@ -200,7 +200,7 @@ export default function EntryForm({ onSubmit, initial, accounts = [] }) {
         <label className="block text-sm font-medium text-gray-700">
           Data
         </label>
-        <div className="relative">
+        <div className="relative overflow-hidden">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Calendar className="h-5 w-5 text-gray-400" />
           </div>
@@ -208,7 +208,8 @@ export default function EntryForm({ onSubmit, initial, accounts = [] }) {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             type="date"
-            className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="block w-full max-w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            style={{ boxSizing: 'border-box' }}
           />
         </div>
       </div>

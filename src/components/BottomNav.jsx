@@ -16,29 +16,29 @@ export default function BottomNav() {
   const { pathname } = useLocation()
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none"
+      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
     >
-      <div className="flex items-stretch">
+      <nav className="pointer-events-auto flex items-center gap-0.5 bg-gray-900/95 dark:bg-black/95 backdrop-blur-md rounded-full px-3 py-2.5 shadow-2xl shadow-black/50 border border-white/5">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => {
           const active = pathname === to
           return (
             <Link
               key={to}
               to={to}
-              className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${
+              aria-label={label}
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
                 active
-                  ? 'text-emerald-500'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400'
+                  ? 'bg-white/15 text-white'
+                  : 'text-gray-500 hover:text-gray-200 hover:bg-white/10'
               }`}
             >
               <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />
-              <span className="text-[9px] mt-0.5 font-medium leading-none">{label}</span>
             </Link>
           )
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   )
 }

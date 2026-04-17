@@ -33,7 +33,7 @@ export default function App() {
         <ToastProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
             <Navbar />
-            <main className="p-6 pb-24 md:pb-6">
+            <main className="p-6 pb-28">
             <Routes>
             <Route path="/login" element={<Login />} />
             <Route
