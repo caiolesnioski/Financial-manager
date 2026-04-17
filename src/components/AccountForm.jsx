@@ -20,6 +20,7 @@ export default function AccountForm({ onSubmit, initial }) {
       initialBalance: Number(initialBalance),
       currentBalance: Number(initialBalance)
     }
+    
     onSubmit(account)
   }
 
