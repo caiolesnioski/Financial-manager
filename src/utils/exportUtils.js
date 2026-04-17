@@ -1,12 +1,7 @@
 import Papa from 'papaparse'
 import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
+import autoTable from 'jspdf-autotable'
 
-/**
- * Formata valor monetário para padrão brasileiro
- * @param {number} value - Valor numérico
- * @returns {string} - Valor formatado (R$ 1.234,56)
- */
 export function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -14,11 +9,6 @@ export function formatCurrency(value) {
   }).format(value || 0)
 }
 
-/**
- * Formata data para padrão brasileiro
- * @param {string} dateStr - Data em formato ISO ou YYYY-MM-DD
- * @returns {string} - Data formatada (dd/mm/yyyy)
- */
 export function formatDate(dateStr) {
   if (!dateStr) return ''
   const date = new Date(dateStr)
@@ -26,13 +16,7 @@ export function formatDate(dateStr) {
 }
 
 /**
- * Exporta dados para CSV e inicia download
- * @param {Array<Object>} data - Array de objetos para exportar
- * @param {string} filename - Nome do arquivo (sem extensão)
- * @param {Object} options - Opções de configuração
- * @param {Object} options.headers - Mapeamento de campos para headers em português
- * @param {Object} options.formatters - Funções de formatação por campo
- * @returns {Promise<{success: boolean, error?: string}>}
+ * Exporta dados para CSV com cabeçalho informativo e encoding UTF-8 BOM
  */
 export async function exportToCSV(data, filename, options = {}) {
   try {
@@ -40,12 +24,8 @@ export async function exportToCSV(data, filename, options = {}) {
       return { success: false, error: 'Nenhum dado para exportar' }
     }
 
-    const {
-      headers = {},
-      formatters = {}
-    } = options
+    const { headers = {}, formatters = {}, period = '', appName = 'Gerenciador Financeiro' } = options
 
-    // Aplica formatadores e renomeia campos
     const formattedData = data.map(item => {
       const newItem = {}
       Object.keys(item).forEach(key => {
@@ -56,17 +36,23 @@ export async function exportToCSV(data, filename, options = {}) {
       return newItem
     })
 
-    // Gera CSV com papaparse
     const csv = Papa.unparse(formattedData, {
-      delimiter: ';', // Melhor compatibilidade com Excel BR
+      delimiter: ';',
       quotes: true
     })
 
-    // Adiciona BOM para UTF-8 (corrige caracteres especiais no Excel)
-    const bom = '\uFEFF'
-    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' })
+    const now = new Date().toLocaleDateString('pt-BR')
+    const headerLines = [
+      `"${appName}"`,
+      period ? `"Período: ${period}"` : '',
+      `"Gerado em: ${now}"`,
+      `"Total de registros: ${data.length}"`,
+      ''
+    ].filter(Boolean).join('\r\n')
 
-    // Cria link e inicia download
+    const bom = '\uFEFF'
+    const blob = new Blob([bom + headerLines + '\r\n' + csv], { type: 'text/csv;charset=utf-8;' })
+
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
@@ -85,91 +71,122 @@ export async function exportToCSV(data, filename, options = {}) {
 }
 
 /**
- * Captura elemento HTML e exporta como PDF
- * @param {string} elementId - ID do elemento a capturar
- * @param {string} filename - Nome do arquivo (sem extensão)
- * @param {Object} options - Opções de configuração
- * @param {string} options.title - Título do PDF
- * @param {string} options.orientation - 'portrait' ou 'landscape'
- * @returns {Promise<{success: boolean, error?: string}>}
+ * Gera PDF profissional usando jspdf-autotable
  */
-export async function exportToPDF(elementId, filename, options = {}) {
+export async function exportToPDF(entries, filename, options = {}) {
   try {
-    const element = document.getElementById(elementId)
-
-    if (!element) {
-      return { success: false, error: 'Elemento não encontrado' }
-    }
-
     const {
       title = 'Relatório Financeiro',
-      orientation = 'portrait'
+      period = '',
+      totalIncome = 0,
+      totalExpenses = 0,
+      balance = 0,
     } = options
 
-    // Captura elemento como canvas
-    const canvas = await html2canvas(element, {
-      scale: 2, // Melhor qualidade
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false
-    })
-
-    const imgData = canvas.toDataURL('image/png')
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-
-    // Configura PDF
-    const pdf = new jsPDF({
-      orientation,
-      unit: 'mm',
-      format: 'a4'
-    })
-
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
     const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 10
+    const margin = 15
 
-    // Calcula dimensões proporcionais
-    const availableWidth = pageWidth - (margin * 2)
-    const ratio = availableWidth / imgWidth
-    const scaledHeight = imgHeight * ratio
+    // Cabeçalho com fundo verde
+    pdf.setFillColor(16, 185, 129) // emerald-500
+    pdf.rect(0, 0, pageWidth, 38, 'F')
 
-    // Adiciona título
-    pdf.setFontSize(16)
-    pdf.setTextColor(16, 185, 129) // Emerald-500
-    pdf.text(title, margin, margin + 5)
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFontSize(18)
+    pdf.setFont(undefined, 'bold')
+    pdf.text('Gerenciador Financeiro', margin, 14)
 
-    // Adiciona data de geração
-    pdf.setFontSize(10)
-    pdf.setTextColor(100, 100, 100)
-    pdf.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, margin, margin + 12)
+    pdf.setFontSize(11)
+    pdf.setFont(undefined, 'normal')
+    pdf.text(title, margin, 22)
+    if (period) pdf.text(`Período: ${period}`, margin, 29)
 
-    // Posição inicial da imagem
-    let yPosition = margin + 18
-    let remainingHeight = scaledHeight
+    pdf.setFontSize(9)
+    pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, 35)
 
-    // Adiciona imagem (pode precisar de múltiplas páginas)
-    while (remainingHeight > 0) {
-      const availablePageHeight = pageHeight - yPosition - margin
+    // Resumo executivo
+    const summaryY = 46
+    pdf.setTextColor(55, 65, 81)
+    pdf.setFontSize(11)
+    pdf.setFont(undefined, 'bold')
+    pdf.text('Resumo', margin, summaryY)
 
-      if (remainingHeight <= availablePageHeight) {
-        // Cabe na página atual
-        pdf.addImage(imgData, 'PNG', margin, yPosition, availableWidth, scaledHeight)
-        remainingHeight = 0
-      } else {
-        // Precisa dividir em páginas
-        const visibleHeight = availablePageHeight
-        pdf.addImage(imgData, 'PNG', margin, yPosition, availableWidth, scaledHeight)
-        pdf.addPage()
-        yPosition = margin
-        remainingHeight -= visibleHeight
+    const boxW = (pageWidth - margin * 2 - 8) / 3
+    const summaryItems = [
+      { label: 'Total Receitas', value: formatCurrency(totalIncome), color: [16, 185, 129] },
+      { label: 'Total Despesas', value: formatCurrency(totalExpenses), color: [239, 68, 68] },
+      { label: 'Saldo', value: formatCurrency(balance), color: balance >= 0 ? [16, 185, 129] : [239, 68, 68] },
+    ]
+
+    summaryItems.forEach((item, i) => {
+      const x = margin + i * (boxW + 4)
+      const y = summaryY + 4
+      pdf.setFillColor(248, 250, 252)
+      pdf.roundedRect(x, y, boxW, 18, 2, 2, 'F')
+      pdf.setFontSize(8)
+      pdf.setFont(undefined, 'normal')
+      pdf.setTextColor(107, 114, 128)
+      pdf.text(item.label, x + 4, y + 6)
+      pdf.setFontSize(11)
+      pdf.setFont(undefined, 'bold')
+      pdf.setTextColor(...item.color)
+      pdf.text(item.value, x + 4, y + 14)
+    })
+
+    // Tabela de lançamentos
+    const tableY = summaryY + 28
+    pdf.setTextColor(55, 65, 81)
+    pdf.setFontSize(11)
+    pdf.setFont(undefined, 'bold')
+    pdf.text(`Lançamentos (${entries.length})`, margin, tableY)
+
+    const rows = entries.map(e => [
+      e.data || '',
+      e.tipo || '',
+      e.categoria || '',
+      e.descricao || '',
+      e.conta || '',
+      e.valor || ''
+    ])
+
+    autoTable(pdf, {
+      startY: tableY + 4,
+      head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Conta', 'Valor']],
+      body: rows,
+      margin: { left: margin, right: margin },
+      headStyles: {
+        fillColor: [16, 185, 129],
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9,
+      },
+      bodyStyles: { fontSize: 8.5, textColor: [55, 65, 81] },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 26, halign: 'right' },
+      },
+      didDrawPage: (data) => {
+        // Rodapé em cada página
+        const pageCount = pdf.internal.getNumberOfPages()
+        pdf.setFontSize(8)
+        pdf.setTextColor(156, 163, 175)
+        pdf.setFont(undefined, 'normal')
+        const pageH = pdf.internal.pageSize.getHeight()
+        pdf.text(
+          `Gerenciador Financeiro — ${new Date().toLocaleDateString('pt-BR')} — Página ${data.pageNumber} de ${pageCount}`,
+          pageWidth / 2,
+          pageH - 8,
+          { align: 'center' }
+        )
       }
-    }
+    })
 
-    // Salva PDF
     pdf.save(`${filename}.pdf`)
-
     return { success: true }
   } catch (error) {
     console.error('Erro ao exportar PDF:', error)
@@ -177,12 +194,6 @@ export async function exportToPDF(elementId, filename, options = {}) {
   }
 }
 
-/**
- * Prepara dados de lançamentos para exportação CSV
- * @param {Array} entries - Array de lançamentos
- * @param {Array} accounts - Array de contas (para lookup de nomes)
- * @returns {Array} - Dados formatados para CSV
- */
 export function prepareEntriesForExport(entries, accounts = []) {
   const accountMap = new Map(accounts.map(a => [a.id, a.name]))
 
@@ -191,19 +202,18 @@ export function prepareEntriesForExport(entries, accounts = []) {
     descricao: entry.description || '',
     tipo: entry.type === 'income' ? 'Receita' : entry.type === 'expense' ? 'Despesa' : 'Transferência',
     categoria: entry.category || '',
-    valor: formatCurrency(entry.value),
-    conta: accountMap.get(entry.account) || accountMap.get(entry.account_id) || ''
+    conta: accountMap.get(entry.account) || accountMap.get(entry.account_id) || '',
+    moeda: entry.currency || 'BRL',
+    valor: entry.value != null ? Number(entry.value) : 0,
   }))
 }
 
-/**
- * Headers em português para exportação de lançamentos
- */
 export const entryExportHeaders = {
   data: 'Data',
   descricao: 'Descrição',
   tipo: 'Tipo',
   categoria: 'Categoria',
+  conta: 'Conta',
+  moeda: 'Moeda',
   valor: 'Valor',
-  conta: 'Conta'
 }

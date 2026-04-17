@@ -42,10 +42,13 @@ export default function Reports() {
     setIsExporting(true)
     try {
       const dataToExport = prepareEntriesForExport(filteredEntries, [])
-      const filename = `relatorio-financeiro-${selectedMonth}`
+      const monthLabel = new Date(selectedMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      const [year, month] = selectedMonth.split('-')
+      const filename = `financas-${month}-${year}`
 
       const result = await exportToCSV(dataToExport, filename, {
-        headers: entryExportHeaders
+        headers: entryExportHeaders,
+        period: monthLabel,
       })
 
       if (result.success) {
@@ -64,12 +67,17 @@ export default function Reports() {
   const handleExportPDF = async () => {
     setIsExporting(true)
     try {
-      const filename = `relatorio-financeiro-${selectedMonth}`
       const monthLabel = new Date(selectedMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      const [year, month] = selectedMonth.split('-')
+      const filename = `financas-${month}-${year}`
+      const prepared = prepareEntriesForExport(filteredEntries, [])
 
-      const result = await exportToPDF('reports-content', filename, {
+      const result = await exportToPDF(prepared, filename, {
         title: `Relatório Financeiro - ${monthLabel}`,
-        orientation: 'portrait'
+        period: monthLabel,
+        totalIncome: income,
+        totalExpenses: expenses,
+        balance: balance,
       })
 
       if (result.success) {
@@ -583,7 +591,7 @@ export default function Reports() {
               </div>
             )}
             {/* Legenda */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
               {expensesByCategory.slice(0, 6).map((cat, idx) => (
                 <div key={idx} className="flex items-center gap-2">
                   <div

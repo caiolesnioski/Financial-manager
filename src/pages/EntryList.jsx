@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 import { useEntries } from '../hooks/useEntries'
 import { useAccounts } from '../hooks/useAccounts'
 import { useToast } from '../context/ToastContext'
-import { Search, X, Filter, Calendar, FileDown, Loader2, Repeat, Plus } from 'lucide-react'
-import { exportToCSV, prepareEntriesForExport, entryExportHeaders } from '../utils/exportUtils'
+import { Search, X, Filter, Calendar, FileDown, Loader2, Repeat, Plus, Download } from 'lucide-react'
+import { exportToCSV, exportToPDF, prepareEntriesForExport, entryExportHeaders } from '../utils/exportUtils'
 
 export default function EntryList() {
   const { entries, loading, remove } = useEntries()
@@ -20,6 +20,7 @@ export default function EntryList() {
   const [endDate, setEndDate] = useState('')
   const [sortBy, setSortBy] = useState('date-desc')
   const [isExporting, setIsExporting] = useState(false)
+  const [isPdfExporting, setIsPdfExporting] = useState(false)
 
   // useCallback: estabiliza o handler de exclusão
   const handleRemove = useCallback((id) => {
@@ -104,6 +105,36 @@ export default function EntryList() {
     setSortBy('date-desc')
   }, [])
 
+  // Função para exportar PDF
+  const handleExportPDF = async () => {
+    setIsPdfExporting(true)
+    try {
+      const prepared = prepareEntriesForExport(filteredAndSorted, accounts)
+      const today = new Date()
+      const filename = `financas-${String(today.getMonth()+1).padStart(2,'0')}-${today.getFullYear()}`
+      const totalIncome = filteredAndSorted.filter(e=>e.type==='income').reduce((s,e)=>s+Number(e.value||0),0)
+      const totalExpenses = filteredAndSorted.filter(e=>e.type==='expense').reduce((s,e)=>s+Number(e.value||0),0)
+
+      const result = await exportToPDF(prepared, filename, {
+        title: 'Lançamentos',
+        period: today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        totalIncome,
+        totalExpenses,
+        balance: totalIncome - totalExpenses,
+      })
+
+      if (result.success) {
+        addToast('PDF exportado com sucesso!', 'success')
+      } else {
+        addToast(result.error || 'Erro ao exportar PDF', 'error')
+      }
+    } catch (error) {
+      addToast('Erro ao exportar PDF', 'error')
+    } finally {
+      setIsPdfExporting(false)
+    }
+  }
+
   // Função para exportar CSV
   const handleExportCSV = async () => {
     setIsExporting(true)
@@ -143,18 +174,32 @@ export default function EntryList() {
               {filteredAndSorted.length} de {entries.length} lançamentos
             </p>
           </div>
-          <button
-            onClick={handleExportCSV}
-            disabled={isExporting || filteredAndSorted.length === 0}
-            className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            {isExporting ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <FileDown size={16} />
-            )}
-            Exportar CSV
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting || filteredAndSorted.length === 0}
+              className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {isExporting ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <FileDown size={16} />
+              )}
+              CSV
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={isPdfExporting || filteredAndSorted.length === 0}
+              className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              {isPdfExporting ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Download size={16} />
+              )}
+              PDF
+            </button>
+          </div>
         </div>
       </div>
 
@@ -246,7 +291,7 @@ export default function EntryList() {
           </div>
 
           {/* Filtros de data */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                 <Calendar size={12} className="inline mr-1" />

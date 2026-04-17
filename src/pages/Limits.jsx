@@ -320,8 +320,8 @@ export default function Limits() {
 
       {/* Modal de Formulario */}
       {mostrarFormulario && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col transition-colors">
             <div className="sticky top-0 bg-white dark:bg-gray-800 px-6 py-4 border-b dark:border-gray-700 flex items-center justify-between">
               <h2 className="text-xl font-semibold dark:text-white">{limiteEditando ? 'Editar limite' : 'Novo limite'}</h2>
               <button onClick={() => setMostrarFormulario(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl w-11 h-11 flex items-center justify-center">
@@ -329,7 +329,7 @@ export default function Limits() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {/* Preview */}
               <div className="flex items-center justify-center">
                 <div
@@ -358,7 +358,7 @@ export default function Limits() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Data inicio</label>
                   <input
@@ -394,7 +394,9 @@ export default function Limits() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+            </div>
+            <div className="px-6 py-4 border-t dark:border-gray-700 shrink-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+              <div className="flex gap-3">
                 <button
                   onClick={() => setMostrarFormulario(false)}
                   className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium text-gray-700 dark:text-gray-300 min-h-[44px]"

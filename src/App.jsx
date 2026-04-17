@@ -9,6 +9,7 @@ import Limits from './pages/Limits'
 import Settings from './pages/Settings'
 import EntryList from './pages/EntryList'
 import Recurrents from './pages/Recurrents'
+import Goals from './pages/Goals'
 import Navbar from './pages/Navbar'
 import BottomNav from './components/BottomNav'
 import ToastContainer from './components/ToastContainer'
@@ -104,6 +105,14 @@ export default function App() {
               element={
                 <PrivateRoute>
                   <Recurrents />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/goals"
+              element={
+                <PrivateRoute>
+                  <Goals />
                 </PrivateRoute>
               }
             />

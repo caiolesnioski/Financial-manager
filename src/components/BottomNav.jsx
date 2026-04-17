@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Wallet, List, AlertCircle, BarChart2, FileText, Repeat } from 'lucide-react'
+import { Home, Wallet, List, AlertCircle, BarChart2, FileText, Repeat, Target } from 'lucide-react'
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Início' },
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/cashflow', icon: BarChart2, label: 'Fluxo' },
   { to: '/reports', icon: FileText, label: 'Relatório' },
   { to: '/recurrents', icon: Repeat, label: 'Fixos' },
+  { to: '/goals', icon: Target, label: 'Metas' },
 ]
 
 export default function BottomNav() {
