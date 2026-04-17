@@ -10,6 +10,7 @@ import Settings from './pages/Settings'
 import EntryList from './pages/EntryList'
 import Recurrents from './pages/Recurrents'
 import Navbar from './pages/Navbar'
+import BottomNav from './components/BottomNav'
 import ToastContainer from './components/ToastContainer'
 import { useAuth } from './hooks/useAuth'
 import { ToastProvider } from './context/ToastContext'
@@ -31,7 +32,7 @@ export default function App() {
         <ToastProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
             <Navbar />
-            <main className="p-6">
+            <main className="p-6 pb-24 md:pb-6">
             <Routes>
             <Route path="/login" element={<Login />} />
             <Route
@@ -108,6 +109,7 @@ export default function App() {
             />
             </Routes>
           </main>
+            <BottomNav />
             <ToastContainer />
           </div>
         </ToastProvider>

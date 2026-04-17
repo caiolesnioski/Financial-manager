@@ -64,10 +64,12 @@ export default function Recurrents() {
   }, [items, payments])
 
   const totals = useMemo(() => {
-    const total = items.reduce((s, i) => s + Number(i.amount), 0)
-    const paid = itemsWithStatus.filter(i => i.paid).reduce((s, i) => s + Number(i.amount), 0)
+    const currency = items[0]?.currency || 'BRL'
+    const sameItems = items.filter(i => (i.currency || 'BRL') === currency)
+    const total = sameItems.reduce((s, i) => s + Number(i.amount), 0)
+    const paid = itemsWithStatus.filter(i => i.paid && (i.currency || 'BRL') === currency).reduce((s, i) => s + Number(i.amount), 0)
     const pending = total - paid
-    return { total, paid, pending }
+    return { total, paid, pending, currency }
   }, [items, itemsWithStatus])
 
   const handleTogglePaid = async (item) => {
@@ -162,15 +164,15 @@ export default function Recurrents() {
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm dark:shadow-gray-700/20 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total</p>
-            <p className="text-base font-bold text-gray-800 dark:text-white">{formatMoney(totals.total)}</p>
+            <p className="text-base font-bold text-gray-800 dark:text-white">{formatMoney(totals.total, totals.currency)}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm dark:shadow-gray-700/20 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pagos</p>
-            <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(totals.paid)}</p>
+            <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(totals.paid, totals.currency)}</p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm dark:shadow-gray-700/20 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pendentes</p>
-            <p className="text-base font-bold text-orange-500 dark:text-orange-400">{formatMoney(totals.pending)}</p>
+            <p className="text-base font-bold text-orange-500 dark:text-orange-400">{formatMoney(totals.pending, totals.currency)}</p>
           </div>
         </div>
 

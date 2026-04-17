@@ -40,7 +40,7 @@ export default function CategorySelector({ type, value, onChange }) {
         Categoria
       </label>
 
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
         {allCategories.map((category) => {
           const Icon = category.icon
           const selected = isSelected(category.name)

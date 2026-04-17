@@ -376,7 +376,7 @@ export default function EntryList() {
       {/* Botao flutuante para novo lancamento */}
       <Link
         to="/new-entry"
-        className="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 rounded-full shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 z-10"
+        className="fixed bottom-24 md:bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 rounded-full shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 z-40"
       >
         <Plus size={28} />
       </Link>

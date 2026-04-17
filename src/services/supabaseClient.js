@@ -14,6 +14,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   )
 }
 
-export const supabase = createClient(SUPABASE_URL ?? 'http://localhost', SUPABASE_ANON_KEY ?? 'placeholder')
-
-// Note: keep keys safe; for production use a proper server-side auth.
+export const supabase = createClient(SUPABASE_URL ?? 'http://localhost', SUPABASE_ANON_KEY ?? 'placeholder', {
+  db: { schema: 'public' },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true
+  }
+})

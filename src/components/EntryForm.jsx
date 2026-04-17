@@ -42,13 +42,13 @@ export default function EntryForm({ onSubmit, initial, accounts = [] }) {
   ]
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
       {/* Tipo de Lancamento */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
           Tipo de Lancamento
         </label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 md:gap-3">
           {typeOptions.map((option) => {
             const Icon = option.icon
             const isSelected = type === option.value
@@ -58,7 +58,7 @@ export default function EntryForm({ onSubmit, initial, accounts = [] }) {
                 type="button"
                 onClick={() => setType(option.value)}
                 className={`
-                  flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                  flex flex-col items-center justify-center p-2 md:p-4 rounded-xl border-2 transition-all duration-200
                   ${isSelected
                     ? `${option.borderColor} ${option.bgColor} shadow-md`
                     : 'border-gray-200 bg-white hover:border-gray-300'
