@@ -86,6 +86,47 @@ create policy "limits_owner_delete" on public.limits
 
 create index if not exists limits_user_id_idx on public.limits (user_id);
 
+-- MIGRATIONS (run these if tables already exist)
+-- ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS currency text default 'BRL';
+-- ALTER TABLE public.entries ADD COLUMN IF NOT EXISTS repeat_type text default 'none';
+-- ALTER TABLE public.entries ADD COLUMN IF NOT EXISTS repeat_end_date date;
+-- ALTER TABLE public.entries ADD COLUMN IF NOT EXISTS parent_entry_id uuid;
+
+-- RECURRING ITEMS
+create table if not exists public.recurring_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  name text not null,
+  amount numeric not null default 0,
+  currency text default 'BRL',
+  category text,
+  day_of_month integer not null check (day_of_month >= 1 and day_of_month <= 31),
+  inserted_at timestamptz default now()
+);
+
+alter table public.recurring_items enable row level security;
+
+create policy "recurring_items_owner" on public.recurring_items
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- RECURRING PAYMENTS (tracks paid/unpaid per month)
+create table if not exists public.recurring_payments (
+  id uuid primary key default gen_random_uuid(),
+  recurring_item_id uuid references public.recurring_items(id) on delete cascade,
+  user_id uuid not null,
+  month integer not null,
+  year integer not null,
+  paid boolean default false,
+  paid_at timestamptz,
+  inserted_at timestamptz default now(),
+  unique(recurring_item_id, month, year)
+);
+
+alter table public.recurring_payments enable row level security;
+
+create policy "recurring_payments_owner" on public.recurring_payments
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
 -- Notes:
 -- 1) Supabase auth stores users in the 'auth.users' table. We store user_id (UUID) in each table and policies
 --    ensure that only the owner (auth.uid()) can access or modify their rows.

@@ -5,7 +5,7 @@ const CurrencyContext = createContext()
 export const currencies = [
   { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro', locale: 'pt-BR' },
   { code: 'USD', symbol: '$', name: 'Dolar Americano', locale: 'en-US' },
-  { code: 'EUR', symbol: '\u20AC', name: 'Euro', locale: 'de-DE' }
+  { code: 'EUR', symbol: '€', name: 'Euro', locale: 'de-DE' }
 ]
 
 export function CurrencyProvider({ children }) {
@@ -18,16 +18,17 @@ export function CurrencyProvider({ children }) {
     localStorage.setItem('preferredCurrency', currency)
   }, [currency])
 
-  const formatMoney = (value) => {
-    const currencyInfo = currencies.find(c => c.code === currency) || currencies[0]
+  const formatMoney = (value, currencyCode) => {
+    const code = currencyCode || currency
+    const currencyInfo = currencies.find(c => c.code === code) || currencies[0]
     return new Intl.NumberFormat(currencyInfo.locale, {
       style: 'currency',
-      currency: currency
+      currency: code
     }).format(value || 0)
   }
 
-  const getCurrencyInfo = () => {
-    return currencies.find(c => c.code === currency) || currencies[0]
+  const getCurrencyInfo = (currencyCode) => {
+    return currencies.find(c => c.code === (currencyCode || currency)) || currencies[0]
   }
 
   return (

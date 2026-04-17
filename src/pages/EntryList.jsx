@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useEntries } from '../hooks/useEntries'
 import { useAccounts } from '../hooks/useAccounts'
 import { useToast } from '../context/ToastContext'
-import { Search, X, Filter, Calendar, ArrowUpDown, FileDown, Loader2, Repeat } from 'lucide-react'
+import { Search, X, Filter, Calendar, FileDown, Loader2, Repeat, Plus } from 'lucide-react'
 import { exportToCSV, prepareEntriesForExport, entryExportHeaders } from '../utils/exportUtils'
 
 export default function EntryList() {
@@ -132,7 +133,7 @@ export default function EntryList() {
     filterCategory !== 'all' || startDate || endDate || sortBy !== 'date-desc'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-24">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10 transition-colors">
         <div className="px-6 py-4 flex items-center justify-between">
@@ -325,6 +326,7 @@ export default function EntryList() {
           )}
 
           {filteredAndSorted.map((e) => {
+
             const account = accounts.find(a => a.id === e.account_id)
             const isRecurring = e.isRecurring || (e.repeatType && e.repeatType !== 'none')
             return (
@@ -370,6 +372,14 @@ export default function EntryList() {
           })}
         </div>
       </div>
+
+      {/* Botao flutuante para novo lancamento */}
+      <Link
+        to="/new-entry"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 rounded-full shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 z-10"
+      >
+        <Plus size={28} />
+      </Link>
     </div>
   )
 }

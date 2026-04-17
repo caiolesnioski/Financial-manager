@@ -3,7 +3,6 @@ import { Wallet, Building2, CreditCard, PiggyBank, Plus, Trash2, Edit2, Trending
 import { useAccounts } from '../hooks/useAccounts'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useToast } from '../context/ToastContext'
-import CurrencySelector from '../components/CurrencySelector'
 import { ACCOUNT_TYPE_OPTIONS, ACCOUNT_TYPE_LABELS } from '../constants/accountTypes'
 import { validateAccountName, validateBalance, getErrorMessage } from '../utils/validators'
 
@@ -17,6 +16,7 @@ export default function Accounts() {
   const [formTipo, setFormTipo] = useState('bank')
   const [formSaldo, setFormSaldo] = useState('0')
   const [formCor, setFormCor] = useState('bg-blue-500')
+  const [formMoeda, setFormMoeda] = useState('BRL')
   const [formErros, setFormErros] = useState({})
   const [salvando, setSalvando] = useState(false)
 
@@ -66,6 +66,7 @@ export default function Accounts() {
     setFormTipo(conta.type || 'bank')
     setFormSaldo(String(conta.currentBalance ?? 0))
     setFormCor(conta.cor || 'bg-blue-500')
+    setFormMoeda(conta.currency || 'BRL')
     setFormErros({})
     setMostrarFormulario(true)
   }
@@ -76,6 +77,7 @@ export default function Accounts() {
     setFormTipo('bank')
     setFormSaldo('0')
     setFormCor('bg-blue-500')
+    setFormMoeda('BRL')
     setFormErros({})
     setMostrarFormulario(true)
   }
@@ -101,7 +103,8 @@ export default function Accounts() {
       name: formNome,
       type: formTipo,
       initialBalance: Number(formSaldo) || 0,
-      currentBalance: Number(formSaldo) || 0
+      currentBalance: Number(formSaldo) || 0,
+      currency: formMoeda
     }
 
     try {
@@ -139,7 +142,6 @@ export default function Accounts() {
       <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10 transition-colors">
         <div className="px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Minhas contas</h1>
-          <CurrencySelector compact />
         </div>
       </div>
 
@@ -171,11 +173,16 @@ export default function Accounts() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800 dark:text-white text-lg">{conta.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{conta.type}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{conta.type}</p>
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full font-medium">
+                          {conta.currency || 'BRL'}
+                        </span>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className={`text-xl font-bold ${(conta.currentBalance ?? 0) >= 0 ? 'text-gray-800 dark:text-white' : 'text-red-600 dark:text-red-400'}`}>
-                        {formatMoney(conta.currentBalance ?? 0)}
+                        {formatMoney(conta.currentBalance ?? 0, conta.currency)}
                       </p>
                       <div className="flex items-center justify-end gap-1 mt-1">
                         {(conta.currentBalance ?? 0) >= (conta.initialBalance ?? 0) ? (
@@ -184,7 +191,7 @@ export default function Accounts() {
                           <TrendingDown size={14} className="text-red-500" />
                         )}
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          Inicial: {formatMoney(conta.initialBalance ?? 0)}
+                          Inicial: {formatMoney(conta.initialBalance ?? 0, conta.currency)}
                         </span>
                       </div>
                     </div>
@@ -264,6 +271,19 @@ export default function Accounts() {
                   {tiposConta.map(tipo => (
                     <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Moeda</label>
+                <select
+                  value={formMoeda}
+                  onChange={(e) => setFormMoeda(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                >
+                  <option value="BRL">R$ — Real Brasileiro</option>
+                  <option value="EUR">€ — Euro</option>
+                  <option value="USD">$ — Dólar Americano</option>
                 </select>
               </div>
 

@@ -22,6 +22,7 @@ export default function Navbar() {
           <Link to="/limits" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Limites</Link>
           <Link to="/cashflow" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Fluxo</Link>
           <Link to="/reports" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Relatórios</Link>
+          <Link to="/recurrents" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Fixos</Link>
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle />

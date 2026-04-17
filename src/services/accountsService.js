@@ -10,7 +10,8 @@ function toDbAccount(account) {
     name: account.name,
     type: account.type,
     initial_balance: account.initialBalance ?? account.initial_balance ?? 0,
-    current_balance: account.currentBalance ?? account.current_balance ?? (account.initialBalance ?? account.initial_balance ?? 0)
+    current_balance: account.currentBalance ?? account.current_balance ?? (account.initialBalance ?? account.initial_balance ?? 0),
+    currency: account.currency || 'BRL'
   }
 }
 
@@ -23,6 +24,7 @@ function toClientAccount(row) {
     type: row.type,
     initialBalance: Number(row.initial_balance ?? 0),
     currentBalance: Number(row.current_balance ?? 0),
+    currency: row.currency || 'BRL',
     inserted_at: row.inserted_at
   }
 }
