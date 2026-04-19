@@ -13,7 +13,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 transition-colors hidden md:block">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-700/20 transition-colors hidden">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="font-bold text-lg text-fintech-green">Gerenciador</Link>

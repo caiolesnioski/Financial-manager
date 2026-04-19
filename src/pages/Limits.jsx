@@ -239,26 +239,24 @@ export default function Limits() {
                   )}
 
                   <div className="p-5">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
-                          className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl"
+                          className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
                           style={{ backgroundColor: `${limite.cor}20` }}
                         >
                           {limite.emoji}
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-800 dark:text-white text-lg">{limite.categoria}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-800 dark:text-white text-lg truncate">{limite.categoria}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                             {formatarData(limite.dataInicio)} - {formatarData(limite.dataFim)}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold" style={{ color: limite.cor }}>
-                          {Math.min(percentual, 100).toFixed(0)}%
-                        </span>
-                      </div>
+                      <span className="text-2xl font-bold flex-shrink-0" style={{ color: limite.cor }}>
+                        {Math.min(percentual, 100).toFixed(0)}%
+                      </span>
                     </div>
 
                     <div className="mb-4">

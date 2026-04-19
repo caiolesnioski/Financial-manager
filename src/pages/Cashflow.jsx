@@ -169,6 +169,24 @@ export default function Cashflow() {
         )}
       </div>
 
+      {/* Card de totais */}
+      <div className="px-6 pt-4">
+        <div className="bg-gray-800/50 rounded-2xl px-4 py-3 mb-4 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Entradas</p>
+            <p className="text-sm font-semibold text-emerald-400">{formatMoney(resumo.entradas)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Saldo</p>
+            <p className={`text-sm font-semibold ${resumo.saldo >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatMoney(resumo.saldo)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Saídas</p>
+            <p className="text-sm font-semibold text-red-400">{formatMoney(resumo.saidas)}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Lista de Transacoes */}
       <div className="px-6 py-4">
         {loading ? (
@@ -305,26 +323,6 @@ export default function Cashflow() {
             </Link>
           </div>
         )}
-      </div>
-
-      {/* Resumo Fixo no Rodape */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 shadow-lg transition-colors">
-        <div className="px-6 py-4 grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">entradas</p>
-            <p className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">{formatMoney(resumo.entradas)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">saidas</p>
-            <p className="text-lg font-semibold text-red-600 dark:text-red-400">{formatMoney(resumo.saidas)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">saldo</p>
-            <p className={`text-lg font-semibold ${resumo.saldo >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
-              {formatMoney(resumo.saldo)}
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Botao Flutuante */}
